@@ -1,7 +1,15 @@
 import { Module } from "@nestjs/common";
-import { GuledogController } from "./gluedog.controller";
+import { GluedogController } from "./gluedog.controller";
 import { GluedogService } from "./gluedog.service";
 import { MongooseModule } from "@nestjs/mongoose";
+import { HttpModule } from "@nestjs/axios";
+import {
+  GluedogInfo,
+  GluedogInfoSchema,
+  GuestInfo,
+  GuestInfoSchema,
+} from "./gluedog.model";
+
 // import {
 //   Calling,
 //   CallingMessage,
@@ -11,12 +19,13 @@ import { MongooseModule } from "@nestjs/mongoose";
 // import { CallingResolver } from "./calling.resolver";
 @Module({
   imports: [
-    // MongooseModule.forFeature([
-    //   { name: Calling.name, schema: CallingSchema },
-    //   { name: CallingMessage.name, schema: CallingMessageSchema },
-    // ]),
+    MongooseModule.forFeature([
+      { name: GluedogInfo.name, schema: GluedogInfoSchema },
+      { name: GuestInfo.name, schema: GuestInfoSchema },
+    ]),
+    HttpModule,
   ],
-  controllers: [GuledogController],
+  controllers: [GluedogController],
   providers: [GluedogService],
 })
 export class GlueDogModule {}

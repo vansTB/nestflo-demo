@@ -9,7 +9,8 @@
       - 页面访问：`http://localhost:3000/oauth/authorize?appId=6732ed0623c18fe76695bf05&supplierId=6666c8e05705876aee9e5318`
       - https://dev.nestflo.ai/?authorizationToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjY3MzIwZWEyNDE0YjU2MTY0MTE1ODdmYyIsImlhdCI6MTczMTMzNDAxMiwiZXhwIjoxNzMxMzM0OTEyfQ.OTvRdcEGu9pbXMU58-lXZmjga5R_ncgM0D3H94ekYvU&appId=67320ea2414b5616411587fc
       - https://dev.nestflo.ai/?authorizationToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjY3MzIwZWEyNDE0YjU2MTY0MTE1ODdmYyIsImlhdCI6MTczMTMzMzgxMywiZXhwIjoxNzMxMzM0NzEzfQ.xwdtFgcsKp_bbaA9wR6FZI7GbVU2GY4vkYBpsoVLGxA&appId=67320ba7414b5616411587ec
-      - 返回带accessToken的配置重定向地址：`https://dev.nestflo.ai/?authorizationToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjY3MzIwZWEyNDE0YjU2MTY0MTE1ODdmYyIsImlhdCI6MTczMTMzMzgxMywiZXhwIjoxNzMxMzM0NzEzfQ.xwdtFgcsKp_bbaA9wR6FZI7GbVU2GY4vkYBpsoVLGxA&appId=67320ba7414b5616411587ec`
+      - 返回带accessToken的配置重定向地址：`https://dev.nestflo.ai/?authorizationToken
+      - =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjY3MzIwZWEyNDE0YjU2MTY0MTE1ODdmYyIsImlhdCI6MTczMTMzMzgxMywiZXhwIjoxNzMxMzM0NzEzfQ.xwdtFgcsKp_bbaA9wR6FZI7GbVU2GY4vkYBpsoVLGxA&appId=67320ba7414b5616411587ec`
  - https://dev.nestflo.ai/?authorizationToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjY3MzE4Yzk0MGE0ZjM5ZWMyMzU5Y2U2YSIsImlhdCI6MTczMTMwMDg4MCwiZXhwIjoxNzMxMzAxNzgwfQ.svWYRzP4sSthBoEy6sHR0_peP7uW6milpKRgDKMSUtg&appId=67320ba7414b5616411587ec
   https://dev.nestflo.ai/?authorizationToken=
   eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjY3MzJlNjcyNDY3YWU2MGM4YWJkN2JjYiIsImlhdCI6MTczMTM4OTA2NSwiZXhwIjoxNzMxMzg5OTY1fQ.PwFgh_p15TRigaUoREcsP0RYMMKCwNFVq6AbpYPVQgY
@@ -60,6 +61,7 @@ http://localhost:3000/oauth/authorized?appId=6732e672467ae60c8abd7bcb
             "webhookSecret": "nestai"
         }
         重定向获取appId: http://localhost:3000/oauth/connect?supplierId=6666c8e05705876aee9e5318
+
 
       -->
   2. 将获取到的token进行数据库保存，隔一天获取一次并判断是否过期

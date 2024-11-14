@@ -7,11 +7,13 @@ import { DirectiveLocation, GraphQLDirective } from "graphql";
 import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
 import { upperDirectiveTransformer } from "./common/directives/upper-case.directive";
 import { CallingModule } from "./calling/calling.module";
+import { ScheduleModule } from "@nestjs/schedule";
 import { GlueDogModule } from "./gluedog/gluedog.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({

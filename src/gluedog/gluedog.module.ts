@@ -4,6 +4,8 @@ import { GluedogService } from "./gluedog.service";
 import { MongooseModule } from "@nestjs/mongoose";
 import { HttpModule } from "@nestjs/axios";
 import {
+  GluedogBranches,
+  GluedogBranchesSchema,
   GluedogInfo,
   GluedogInfoSchema,
   GuestInfo,
@@ -21,6 +23,7 @@ import {
   imports: [
     MongooseModule.forFeature([
       { name: GluedogInfo.name, schema: GluedogInfoSchema },
+      { name: GluedogBranches.name, schema: GluedogBranchesSchema },
       { name: GuestInfo.name, schema: GuestInfoSchema },
     ]),
     HttpModule,

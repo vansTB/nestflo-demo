@@ -1,7 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { Model } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
-import { GluedogInfo, GuestInfoSchemaDocument } from "./gluedog.model";
+import {
+  GluedogBranches,
+  GluedogInfo,
+  GuestInfoSchemaDocument,
+} from "./gluedog.model";
 import { HttpService } from "@nestjs/axios";
 import { Cron } from "@nestjs/schedule";
 
@@ -16,6 +20,8 @@ export class GluedogService {
     private readonly gluedogInfoEntity: Model<GluedogInfo>,
     @InjectModel("GuestInfo")
     private readonly guestInfo: Model<GuestInfoSchemaDocument>,
+    @InjectModel(GluedogBranches.name)
+    private readonly gluedogBrancheEntity: Model<GluedogBranches>,
     private readonly httpService: HttpService
   ) {
     // private readonly callingModel: Model<Calling>, // @InjectModel(Calling.name)
@@ -100,33 +106,58 @@ export class GluedogService {
   async handleCheckGluedogToken() {
     const gluedogInfoStore = await this.gluedogInfoEntity.findOne();
     console.log("gluedogInfoStore", gluedogInfoStore);
+    console.log("检查并重置token时间");
+
     if (!gluedogInfoStore) {
       // 未完成初始化gluedog连接
       console.log("未完成初始化gluedog连接");
       return false;
     } else {
-      //
-      const { expiresIn, created_at } = gluedogInfoStore;
-      const expireTime =
-        (new Date().getTime() - new Date(created_at).getTime()) / 1000;
-      if (expireTime > expiresIn) {
-        // 已过期，需要重新授权  this.handleGetGluedogInfo({});
-        return false;
-      } else {
-        // 未过期，刷新token
-        return await this.handleStoreAccessToken(gluedogInfoStore.refreshToken);
-      }
+      // 直接刷新token，过期刷新、未过期也刷新
+      return await this.handleStoreAccessToken(gluedogInfoStore.refreshToken);
+
+      // const { expiresIn, created_at } = gluedogInfoStore;
+      // const expireTime =
+      //   (new Date().getTime() - new Date(created_at).getTime()) / 1000;
+      // if (expireTime > expiresIn) {
+      //   // 已过期，刷新token  this.handleGetGluedogInfo({});
+      //   return await this.handleStoreAccessToken(gluedogInfoStore.refreshToken);
+      // } else {
+      //   // 未过期，刷新token
+      //   return await this.handleStoreAccessToken(gluedogInfoStore.refreshToken);
+      // }
     }
   }
 
   // 完成初始化，获取branches
   async handleGluedogFinishConnect(body) {
-    const gluedogInfoStore = await this.gluedogInfoEntity.findOne();
-    console.log("handleGluedogFinishConnect");
-
     if (body?.data?.branches) {
-      gluedogInfoStore.branches = body.data.branches;
-      gluedogInfoStore.save();
+      // gluedogInfoStore.branches = body.data.branches;
+      // gluedogInfoStore.save();
+      // body.data.branches.push({
+      //   name: "Gluedog Plymouth Branch2",
+      //   id: "672de197e6fb77993ba1720d",
+      //   functionality: [],
+      // });
+      const newBranches = [];
+      // console.log("branches", body.data.branches);
+      console.log("branches.length", body.data.branches.length);
+
+      for (let i = 0; i < body.data.branches.length; i++) {
+        const branch = body.data.branches[i];
+        const existBranch = await this.gluedogBrancheEntity.find({
+          id: branch.id,
+        });
+        if (!existBranch.length) {
+          newBranches.push(branch);
+        }
+      }
+
+      newBranches.forEach((i, index) => {
+        i.companyId = "658c0eaf4f133672cbe1" + (index + "").padStart(4, "0");
+      });
+      console.log("newBranches", newBranches);
+      await this.gluedogBrancheEntity.insertMany(newBranches);
       return {
         status: "CONNECTED",
       };
@@ -144,54 +175,60 @@ export class GluedogService {
     if (!hasToken) return;
     const gluedogInfoStore = await this.gluedogInfoEntity.findOne();
     const gluedogConfig = getGluedogConfig();
-    console.log("gluedogInfoStore.accessToken", gluedogInfoStore.accessToken);
 
     if (gluedogInfoStore) {
-      const guleInfo = await this.guestInfo
-        .find({
-          created_at: { $gt: gluedogInfoStore.push_gule_at },
-        })
-        .limit(100) // 测试每分钟推送100条
-        .sort({ created_at: 1 });
-      console.log("guleInfo", guleInfo);
-      for (let i = 0; i < guleInfo.length; i++) {
-        const item = guleInfo[i];
+      const branches = await this.gluedogBrancheEntity.find();
+      // console.log(branches);
+      branches.forEach(async (branch) => {
+        // 查出每个branch对应companyId，将对应的guest推过去，并保存对应的断点信息
+        // console.log(branch);
+        const branchGuest = await this.guestInfo
+          .find({
+            company: branch.companyId,
+            created_at: { $gt: branch.push_gule_at },
+          })
+          .limit(100) // 测试每分钟推送100条
+          .sort({ created_at: 1 });
 
-        const re = this.httpService.post(
-          gluedogConfig.pushGuestURL,
-          {
-            branchId: gluedogInfoStore.branches[0]["id"],
-            contact: {
-              name: {
-                title: "",
-                firstName: item.first_name,
-                middleName: "",
-                lastName: item.last_name,
+        // console.log(branchGuest.length);
+        for (let i = 0; i < branchGuest.length; i++) {
+          const item = branchGuest[i];
+          const re = this.httpService.post(
+            gluedogConfig.pushGuestURL,
+            {
+              branchId: branch.id,
+              contact: {
+                name: {
+                  title: "",
+                  firstName: item.first_name,
+                  middleName: "",
+                  lastName: item.last_name,
+                },
+                emailAddress: item.email,
+                phoneNumber: item.phone,
               },
-              emailAddress: item.email,
-              phoneNumber: item.phone,
+              type: "tenant",
+              listingId: "",
+              source: {
+                useSupplierNameAsSource: true,
+                type: "direct_mail",
+              },
+              notes: "",
             },
-            type: "vendor",
-            listingId: "",
-            source: {
-              useSupplierNameAsSource: true,
-              type: "direct_mail",
-            },
-            notes: "",
-          },
-          {
-            headers: {
-              "x-api-version": "1.0.0",
-              Authorization: `Bearer ${gluedogInfoStore.accessToken}`,
-            },
-          }
-        );
-        const checkResult = await (await lastValueFrom(re)).data;
+            {
+              headers: {
+                "x-api-version": "1.0.0",
+                Authorization: `Bearer ${gluedogInfoStore.accessToken}`,
+              },
+            }
+          );
+          const checkResult = await (await lastValueFrom(re)).data;
 
-        console.log("checkResult", checkResult);
-        gluedogInfoStore.push_gule_at = item.created_at;
-        await gluedogInfoStore.save();
-      }
+          console.log("checkResult", checkResult);
+          branch.push_gule_at = item.created_at;
+          await branch.save();
+        }
+      });
     }
   }
 
@@ -200,9 +237,10 @@ export class GluedogService {
   // async handleInsertMockGuestData() {
   //   console.log("handleInsertMockGuestData --------");
   //   for (let i = 101; i < 500; i++) {
+  //     const j = i > 300 ? 1 : 0;
   //     const guestInfo = new this.guestInfo({
   //       _id: "659e812ad59b931c0c9e" + (i + "").padStart(4, "0"),
-  //       compony: "659e812ad59b931c0c9e" + (i + "").padStart(4, "0"),
+  //       company: "658c0eaf4f133672cbe1" + (j + "").padStart(4, "0"),
   //       first_name: "j2" + i,
   //       last_name: "test_last_name" + i,
   //       email: i + "j2@sinaaaaa.com",

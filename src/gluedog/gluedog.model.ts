@@ -13,9 +13,6 @@ export class GluedogInfo {
   @Prop()
   authorizationToken: string;
 
-  @Prop({ type: mongoose.Schema.Types.Mixed })
-  branches: any;
-
   @Prop()
   accessToken: string;
   @Prop()
@@ -37,6 +34,37 @@ export const GluedogInfoSchema = SchemaFactory.createForClass(GluedogInfo);
     createdAt: "created_at",
     updatedAt: "updated_at",
   },
+  collection: "gluedog_branches",
+})
+export class GluedogBranches {
+  @Prop({ type: mongoose.Schema.Types.ObjectId })
+  id: ObjectId;
+
+  @Prop({ type: mongoose.Schema.Types.ObjectId })
+  companyId: ObjectId;
+
+  @Prop({ type: mongoose.Schema.Types.Mixed })
+  functionality: any;
+
+  @Prop()
+  name: string;
+
+  @Prop({ default: new Date(1970) })
+  push_gule_at: Date;
+  @Prop()
+  created_at: Date;
+  @Prop()
+  updated_at: Date;
+}
+
+export const GluedogBranchesSchema =
+  SchemaFactory.createForClass(GluedogBranches);
+
+@Schema({
+  timestamps: {
+    createdAt: "created_at",
+    updatedAt: "updated_at",
+  },
   collection: "guest_info",
 })
 export class GuestInfo {
@@ -44,7 +72,7 @@ export class GuestInfo {
   _id: ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId })
-  company: ObjectId;
+  company: string;
 
   @Prop()
   first_name: string;

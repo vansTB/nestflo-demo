@@ -71,8 +71,6 @@ export class GluedogService {
         `${glueConfig.toFinishConnectRedirect}?appId=${gluedogInfoStore.appId}`
       );
     }
-    // console.log("res", res);
-    // res.send("connect error");
   }
 
   // 保存token、刷新token
@@ -132,17 +130,7 @@ export class GluedogService {
   // 完成初始化，获取branches
   async handleGluedogFinishConnect(body) {
     if (body?.data?.branches) {
-      // gluedogInfoStore.branches = body.data.branches;
-      // gluedogInfoStore.save();
-      // body.data.branches.push({
-      //   name: "Gluedog Plymouth Branch2",
-      //   id: "672de197e6fb77993ba1720d",
-      //   functionality: [],
-      // });
       const newBranches = [];
-      // console.log("branches", body.data.branches);
-      console.log("branches.length", body.data.branches.length);
-
       for (let i = 0; i < body.data.branches.length; i++) {
         const branch = body.data.branches[i];
         const existBranch = await this.gluedogBrancheEntity.find({
@@ -153,10 +141,11 @@ export class GluedogService {
         }
       }
 
-      newBranches.forEach((i, index) => {
-        i.companyId = "658c0eaf4f133672cbe1" + (index + "").padStart(4, "0");
-      });
-      console.log("newBranches", newBranches);
+      // 模拟branch的companyId
+      // newBranches.forEach((i, index) => {
+      //   i.companyId = "658c0eaf4f133672cbe1" + (index + "").padStart(4, "0");
+      // });
+      // console.log("newBranches", newBranches);
       await this.gluedogBrancheEntity.insertMany(newBranches);
       return {
         status: "CONNECTED",

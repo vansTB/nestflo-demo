@@ -8,9 +8,10 @@ import {
   GluedogBranchesSchema,
   GluedogInfo,
   GluedogInfoSchema,
-  GuestInfo,
+  Guest,
   GuestInfoSchema,
 } from "./gluedog.model";
+import { GluedogTask } from "./gluedog.task";
 
 // import {
 //   Calling,
@@ -24,11 +25,11 @@ import {
     MongooseModule.forFeature([
       { name: GluedogInfo.name, schema: GluedogInfoSchema },
       { name: GluedogBranches.name, schema: GluedogBranchesSchema },
-      { name: GuestInfo.name, schema: GuestInfoSchema },
+      { name: Guest.name, schema: GuestInfoSchema },
     ]),
     HttpModule,
   ],
   controllers: [GluedogController],
-  providers: [GluedogService],
+  providers: [GluedogService, GluedogTask],
 })
 export class GlueDogModule {}

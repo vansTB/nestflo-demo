@@ -1,13 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Model } from "mongoose";
 import { InjectModel } from "@nestjs/mongoose";
-import {
-  GluedogBranches,
-  GluedogInfo,
-  GuestInfoSchemaDocument,
-} from "./gluedog.model";
+import { GluedogBranches, GluedogInfo } from "./gluedog.model";
 import { HttpService } from "@nestjs/axios";
-import { Cron } from "@nestjs/schedule";
 
 import { lastValueFrom } from "rxjs";
 import { getGluedogConfig } from "./config";
@@ -18,8 +13,6 @@ export class GluedogService {
   constructor(
     @InjectModel(GluedogInfo.name)
     private readonly gluedogInfoEntity: Model<GluedogInfo>,
-    @InjectModel("GuestInfo")
-    private readonly guestInfo: Model<GuestInfoSchemaDocument>,
     @InjectModel(GluedogBranches.name)
     private readonly gluedogBrancheEntity: Model<GluedogBranches>,
     private readonly httpService: HttpService
@@ -154,70 +147,6 @@ export class GluedogService {
       return {
         status: "UPDATED",
       };
-    }
-  }
-
-  // 定时推送任务
-  @Cron("5 * * * * *")
-  async handlePostGluedogInfo() {
-    const hasToken = await this.handleCheckGluedogToken();
-    if (!hasToken) return;
-    const gluedogInfoStore = await this.gluedogInfoEntity.findOne();
-    const gluedogConfig = getGluedogConfig();
-
-    if (gluedogInfoStore) {
-      const branches = await this.gluedogBrancheEntity.find();
-      // console.log(branches);
-      branches.forEach(async (branch) => {
-        // 查出每个branch对应companyId，将对应的guest推过去，并保存对应的断点信息
-        // console.log(branch);
-        const branchGuest = await this.guestInfo
-          .find({
-            company: branch.companyId,
-            created_at: { $gt: branch.push_gule_at },
-          })
-          .limit(100) // 测试每分钟推送100条
-          .sort({ created_at: 1 });
-
-        // console.log(branchGuest.length);
-        for (let i = 0; i < branchGuest.length; i++) {
-          const item = branchGuest[i];
-          const re = this.httpService.post(
-            gluedogConfig.pushGuestURL,
-            {
-              branchId: branch.id,
-              contact: {
-                name: {
-                  title: "",
-                  firstName: item.first_name,
-                  middleName: "",
-                  lastName: item.last_name,
-                },
-                emailAddress: item.email,
-                phoneNumber: item.phone,
-              },
-              type: "tenant",
-              listingId: "",
-              source: {
-                useSupplierNameAsSource: true,
-                type: "direct_mail",
-              },
-              notes: "",
-            },
-            {
-              headers: {
-                "x-api-version": "1.0.0",
-                Authorization: `Bearer ${gluedogInfoStore.accessToken}`,
-              },
-            }
-          );
-          const checkResult = await (await lastValueFrom(re)).data;
-
-          console.log("checkResult", checkResult);
-          branch.push_gule_at = item.created_at;
-          await branch.save();
-        }
-      });
     }
   }
 

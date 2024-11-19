@@ -41,7 +41,7 @@ export class GluedogBranches {
   id: ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId })
-  companyId: ObjectId;
+  company: ObjectId;
 
   @Prop({ type: mongoose.Schema.Types.Mixed })
   functionality: any;
@@ -65,9 +65,9 @@ export const GluedogBranchesSchema =
     createdAt: "created_at",
     updatedAt: "updated_at",
   },
-  collection: "guest_info",
+  collection: "guest",
 })
-export class GuestInfo {
+export class Guest {
   @Prop({ type: mongoose.Schema.Types.ObjectId })
   _id: ObjectId;
 
@@ -108,5 +108,5 @@ export class GuestInfo {
   // business_scenes: 'letting'
 }
 
-export const GuestInfoSchema = SchemaFactory.createForClass(GuestInfo);
-export type GuestInfoSchemaDocument = GuestInfo & Document;
+export const GuestInfoSchema = SchemaFactory.createForClass(Guest);
+export type GuestInfoSchemaDocument = Guest & Document;
